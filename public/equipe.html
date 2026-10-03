@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Équipe organisatrice | Voyage en Terre Tech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#060B1A">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <section class="connexion panneau" data-connexion hidden>
+    <h1 style="font-size: 1.5rem; margin-bottom: 0.4rem">Équipe organisatrice</h1>
+    <p style="margin-bottom: 1.2rem; font-size: 0.93rem">Accès réservé à l’équipe de la masterclass.</p>
+    <form data-form-connexion>
+      <label class="champ">Mot de passe
+        <input name="motDePasse" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="alerte" role="alert" data-alerte hidden></p>
+      <button class="bouton bouton-ambre large" type="submit">Se connecter</button>
+    </form>
+  </section>
+
+  <main class="equipe" data-espace hidden>
+    <div class="equipe-entete">
+      <div>
+        <p class="surtitre">Voyage en Terre Tech</p>
+        <h1>Inscriptions</h1>
+      </div>
+      <div class="outils" style="margin: 0">
+        <a class="bouton bouton-ambre petit" href="/api/equipe/export.xlsx">Exporter en Excel</a>
+        <a class="bouton bouton-contour petit" href="/api/equipe/export.csv">Exporter en CSV</a>
+        <button class="bouton bouton-contour petit" type="button" data-deconnexion>Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="chiffres">
+      <div><b data-inscrits>···</b><span>inscrits</span></div>
+      <div><b data-restantes>···</b><span>places restantes</span></div>
+      <div><b data-capacite>···</b><span>places au total</span></div>
+      <div><b data-presents>···</b><span>présences validées</span></div>
+    </div>
+
+    <div class="outils">
+      <input type="search" data-recherche placeholder="Rechercher un nom, une adresse, un code de billet…" aria-label="Rechercher une inscription">
+      <button class="mini" type="button" data-actualiser>Actualiser</button>
+    </div>
+
+    <div class="tableau-liste">
+      <table>
+        <thead>
+          <tr><th>N°</th><th>Nom et prénom</th><th>Téléphone</th><th>Adresse électronique</th><th>Établissement</th><th>Filière</th><th>Niveau</th><th>Billet</th><th>Présence</th><th></th></tr>
+        </thead>
+        <tbody data-lignes></tbody>
+      </table>
+      <p class="vide" data-vide hidden>Aucune inscription pour le moment.</p>
+    </div>
+  </main>
+  <script src="/equipe.js" defer></script>
+</body>
+</html>

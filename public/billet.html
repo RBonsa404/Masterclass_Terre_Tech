@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Mon billet | Voyage en Terre Tech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#060B1A">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="page-billet">
+    <p class="billet-note" data-attente>Chargement de votre billet…</p>
+
+    <article class="billet" data-billet hidden aria-label="Billet d’entrée à la masterclass Voyage en Terre Tech">
+      <div class="billet-principal">
+        <div class="billet-haut">
+          <div class="marque">
+            <img src="/img/logo-88.webp" alt="" width="44" height="44">
+            <span><strong>Club Informatique</strong><small>Institut Supérieur de Technologie</small></span>
+          </div>
+          <p class="billet-type">Carte d’embarquement<br>Entrée gratuite</p>
+        </div>
+        <h1>Voyage en <span>Terre Tech</span></h1>
+        <p class="billet-sous">Masterclass · Décoder le monde du numérique</p>
+        <dl class="billet-champs">
+          <div class="grand"><dt>Passager</dt><dd data-nom></dd></div>
+          <div><dt>Établissement</dt><dd data-etablissement></dd></div>
+          <div><dt>Filière</dt><dd data-filiere></dd></div>
+          <div><dt>Date</dt><dd>Samedi 17 octobre 2026</dd></div>
+          <div><dt>Embarquement</dt><dd>8h00, début à 9h00</dd></div>
+          <div><dt>Porte</dt><dd>Amphithéâtre de l’UBS, campus de Tampouy</dd></div>
+        </dl>
+      </div>
+      <div class="billet-talon">
+        <img data-qr alt="Code QR du billet" width="170" height="170">
+        <p class="billet-code" data-code></p>
+        <p class="billet-numero">Billet n° <span data-numero></span> sur <span data-capacite></span></p>
+        <p class="billet-etat" data-etat>Place réservée</p>
+      </div>
+    </article>
+
+    <div class="billet-actions" data-actions hidden>
+      <button class="bouton bouton-ambre" type="button" data-imprimer>Imprimer ou enregistrer en PDF</button>
+      <button class="bouton bouton-contour" type="button" data-copier>Copier le lien du billet</button>
+      <button class="bouton bouton-contour" type="button" data-presence hidden>Valider la présence</button>
+    </div>
+    <p class="billet-note" data-note hidden>Présentez ce billet à l’entrée, sur votre téléphone ou imprimé. Il est personnel : une seule entrée par billet. Accueil à partir de 8h00.</p>
+
+    <div class="panneau complet" data-introuvable hidden>
+      <h1>Billet introuvable</h1>
+      <p>Ce lien ne correspond à aucune inscription. Vérifiez l’adresse ou inscrivez-vous sur la page de l’événement.</p>
+      <a class="bouton bouton-ambre" href="/">Page de l’événement</a>
+    </div>
+  </main>
+  <script src="/billet.js" defer></script>
+</body>
+</html>
