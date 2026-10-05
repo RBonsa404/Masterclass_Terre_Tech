@@ -55,6 +55,7 @@ async function charger() {
   $('[data-inscrits]').textContent = donnees.etat.inscrits;
   $('[data-restantes]').textContent = donnees.etat.restantes;
   $('[data-capacite]').textContent = donnees.etat.capacite;
+  $('[data-invites]').textContent = donnees.etat.invites;
   $('[data-presents]').textContent = donnees.presents;
   $('[data-connexion]').hidden = true;
   $('[data-espace]').hidden = false;

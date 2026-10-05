@@ -22,7 +22,7 @@ const personne = (n, extra = {}) => ({
 });
 
 let base, serveur, url;
-const config = { production: false, capacite: 5, cloture: new Date(Date.now() + 86400000), motDePasseAdmin: 'mot-de-passe-de-test', secretDeSession: 'secret-de-test-secret-de-test-secret', adressePublique: '' };
+const config = { production: false, capacite: 5, placesInvites: 0, ouverture: new Date(Date.now() - 86400000), cloture: new Date(Date.now() + 86400000), motDePasseAdmin: 'mot-de-passe-de-test', secretDeSession: 'secret-de-test-secret-de-test-secret', adressePublique: '' };
 
 const appel = (chemin, options = {}) => fetch(url + chemin, options);
 const envoyer = (corps) => appel('/api/inscriptions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) });
@@ -56,6 +56,8 @@ let adresse = 0;
 beforeEach(async () => {
   await base.query('TRUNCATE inscription RESTART IDENTITY');
   config.capacite = 5;
+  config.placesInvites = 0;
+  config.ouverture = new Date(Date.now() - 86400000);
   config.cloture = new Date(Date.now() + 86400000);
 });
 // Chaque requête se présente sous une adresse différente : la limite de débit par adresse n'interfère pas.
@@ -137,6 +139,32 @@ describe('inscription', () => {
     assert.equal((await refus.json()).code, 'COMPLET');
   });
 
+  it('refuse toute inscription avant l’ouverture, puis les accepte dès qu’elle est passée', async () => {
+    config.ouverture = new Date(Date.now() + 3600000);
+    const avant = await inscrireDepuis(personne(1));
+    assert.equal(avant.status, 403);
+    assert.equal((await avant.json()).code, 'PAS_ENCORE_OUVERT');
+    const etat = await (await appel('/api/etat')).json();
+    assert.deepEqual({ aVenir: etat.aVenir, ouvert: etat.ouvert, ouverture: etat.ouverture }, { aVenir: true, ouvert: false, ouverture: config.ouverture.toISOString() });
+    assert.ok(Math.abs(new Date(etat.maintenant).getTime() - Date.now()) < 5000, 'l’état donne l’heure du serveur');
+
+    config.ouverture = new Date(Date.now() - 1000);
+    assert.equal((await inscrireDepuis(personne(1))).status, 201);
+    assert.equal((await (await appel('/api/etat')).json()).aVenir, false);
+  });
+
+  it('retient les places des invités : elles ne sont pas ouvertes à l’inscription', async () => {
+    config.capacite = 5;
+    config.placesInvites = 2;
+    const debut = await (await appel('/api/etat')).json();
+    assert.deepEqual({ capacite: debut.capacite, invites: debut.invites, ouvertes: debut.ouvertes, restantes: debut.restantes }, { capacite: 5, invites: 2, ouvertes: 3, restantes: 3 });
+    const statuts = [];
+    for (let i = 0; i < 5; i++) statuts.push((await inscrireDepuis(personne(i))).status);
+    assert.deepEqual(statuts, [201, 201, 201, 409, 409]);
+    const fin = await (await appel('/api/etat')).json();
+    assert.deepEqual({ inscrits: fin.inscrits, restantes: fin.restantes, complet: fin.complet }, { inscrits: 3, restantes: 0, complet: true });
+  });
+
   it('refuse toute inscription après la clôture', async () => {
     config.cloture = new Date(Date.now() - 1000);
     const reponse = await inscrireDepuis(personne(1));
@@ -190,6 +218,32 @@ describe('équipe organisatrice', () => {
     const csv = await (await appel('/api/equipe/export.csv', { headers: { Cookie } })).text();
     assert.match(csv, /Kaboré/);
     assert.match(csv, /"'=1\+1"/, 'une valeur commençant par « = » est neutralisée');
+  });
+});
+
+describe('numérotation des billets', () => {
+  it('repart de 001 quand la table a été vidée à la main, sans toucher à une table qui contient des inscrits', async () => {
+    for (let i = 0; i < 3; i++) await inscrireDepuis(personne(i));
+    // Retrait des essais à la main, comme depuis l'outil de l'hébergeur : la séquence, elle, n'est pas remise à zéro.
+    await base.query('DELETE FROM inscription');
+    await preparerSchema(base);
+    const { code } = await (await inscrireDepuis(personne(10))).json();
+    assert.equal((await (await appel(`/api/billets/${code}`)).json()).numero, 1);
+
+    await preparerSchema(base);
+    const suivant = await (await inscrireDepuis(personne(11))).json();
+    assert.equal((await (await appel(`/api/billets/${suivant.code}`)).json()).numero, 2);
+  });
+});
+
+describe('rappel d’agenda', () => {
+  it('propose l’ouverture des inscriptions au format iCalendar', async () => {
+    config.ouverture = new Date('2026-10-08T00:00:00Z');
+    const reponse = await appel('/rappel-ouverture.ics');
+    assert.match(reponse.headers.get('content-type'), /text\/calendar/);
+    const texte = await reponse.text();
+    assert.match(texte, /DTSTART:20261008T000000Z/);
+    assert.match(texte, /TRIGGER:-PT15M/);
   });
 });
 

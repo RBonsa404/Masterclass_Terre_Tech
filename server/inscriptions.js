@@ -53,9 +53,27 @@ export function valider(corps) {
 export async function etat(base, config) {
   const { rows } = await base.query('SELECT count(*)::int AS inscrits FROM inscription');
   const inscrits = rows[0].inscrits;
-  const restantes = Math.max(0, config.capacite - inscrits);
-  const cloturees = Date.now() > config.cloture.getTime();
-  return { capacite: config.capacite, inscrits, restantes, complet: restantes === 0, cloturees, ouvert: restantes > 0 && !cloturees, cloture: config.cloture.toISOString() };
+  // Places ouvertes à l'inscription : la capacité de la salle, moins les places retenues pour les invités.
+  const ouvertes = config.capacite - config.placesInvites;
+  const restantes = Math.max(0, ouvertes - inscrits);
+  const maintenant = Date.now();
+  const cloturees = maintenant > config.cloture.getTime();
+  const aVenir = maintenant < config.ouverture.getTime();
+  return {
+    capacite: config.capacite,
+    invites: config.placesInvites,
+    ouvertes,
+    inscrits,
+    restantes,
+    complet: restantes === 0,
+    aVenir,
+    cloturees,
+    ouvert: restantes > 0 && !cloturees && !aVenir,
+    ouverture: config.ouverture.toISOString(),
+    cloture: config.cloture.toISOString(),
+    // Heure du serveur : le compte à rebours ne dépend pas de l'horloge du téléphone.
+    maintenant: new Date(maintenant).toISOString(),
+  };
 }
 
 export class Refus extends Error {
@@ -68,13 +86,14 @@ export class Refus extends Error {
 
 /** Enregistre une inscription si une place reste. Le décompte et l'insertion se font sous le même verrou. */
 export async function inscrire(base, config, donnees) {
+  if (Date.now() < config.ouverture.getTime()) throw new Refus('PAS_ENCORE_OUVERT', 'Les inscriptions ne sont pas encore ouvertes.', 403);
   if (Date.now() > config.cloture.getTime()) throw new Refus('INSCRIPTIONS_CLOSES', 'Les inscriptions sont closes.', 403);
   const client = await base.connect();
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock($1)', [VERROU_QUOTA]);
     const { rows } = await client.query('SELECT count(*)::int AS inscrits FROM inscription');
-    if (rows[0].inscrits >= config.capacite) throw new Refus('COMPLET', 'Toutes les places ont été attribuées.', 409);
+    if (rows[0].inscrits >= config.capacite - config.placesInvites) throw new Refus('COMPLET', 'Toutes les places ont été attribuées.', 409);
     const existe = await client.query('SELECT 1 FROM inscription WHERE email = $1', [donnees.email]);
     if (existe.rowCount) throw new Refus('DEJA_INSCRIT', 'Cette adresse électronique est déjà inscrite.', 409);
     const insertion = await client.query(

@@ -22,7 +22,8 @@ Club Informatique de l'IST · samedi 17 octobre 2026 · Ouagadougou
 |---|---|
 | Page de l'événement | présentation, sept escales et leurs intervenants, programme de la matinée, informations pratiques |
 | Inscription gratuite | formulaire court ; une seule inscription par adresse électronique |
-| Quota | 200 places ; compteur en direct ; au-delà, l'événement est affiché complet et le formulaire se ferme |
+| Quota | 200 places, dont 35 réservées aux invités : 165 sont ouvertes à l'inscription ; compteur en direct ; une fois ces places prises, l'événement est affiché complet et le formulaire se ferme |
+| Ouverture programmée | avant la date d'ouverture, la page affiche un compte à rebours, propose un rappel d'agenda et le partage du lien ; à l'heure dite, le formulaire apparaît de lui-même |
 | Clôture | les inscriptions s'arrêtent à la date fixée (16 octobre 2026 par défaut) |
 | Billet | carte d'embarquement nominative avec code et code QR, imprimable ou enregistrable en PDF |
 | Espace de l'équipe | liste des inscrits, recherche, validation des présences, retrait d'une inscription, export Excel et CSV |
@@ -73,6 +74,8 @@ Le fichier [`.env.example`](.env.example) les liste toutes. Aucun secret n'est �
 | `ADMIN_PASSWORD` | requise | | mot de passe de l'espace de l'équipe, 12 caractères au moins |
 | `SESSION_SECRET` | requise | | secret de signature des sessions, 32 caractères aléatoires au moins |
 | `CAPACITE` | facultative | `200` | nombre de places |
+| `PLACES_INVITES` | facultative | `35` | places retenues pour les invités, comptées dans la capacité |
+| `OUVERTURE_INSCRIPTIONS` | facultative | `2026-10-08T00:00:00Z` | date et heure d'ouverture (heure d'Ouagadougou = UTC) |
 | `CLOTURE_INSCRIPTIONS` | facultative | `2026-10-16T23:59:59Z` | date et heure de clôture (heure d'Ouagadougou = UTC) |
 | `PUBLIC_URL` | facultative | adresse de la requête | adresse publique du site, sans barre finale ; à renseigner avec un domaine personnalisé |
 
@@ -101,6 +104,13 @@ openssl rand -base64 48
 
 `Postgres` est le nom du service de base dans le projet ; l'adapter s'il porte un autre nom.
 
+## Ouverture et numérotation
+
+- **Changer l'heure d'ouverture** : modifier `OUVERTURE_INSCRIPTIONS` dans les variables du service, au format `AAAA-MM-JJTHH:MM:SSZ`. Minuit dans la nuit de mercredi à jeudi 8 octobre s'écrit `2026-10-08T00:00:00Z` ; minuit dans la nuit de jeudi à vendredi s'écrit `2026-10-09T00:00:00Z`.
+- **Ouvrir tout de suite** : donner à cette variable une date passée.
+- **Numérotation des billets** : quand la table des inscriptions est vide au démarrage du service, la numérotation repart de 001. Après avoir retiré des inscriptions d'essai, il suffit donc de redémarrer le service.
+- **Invités** : leurs places ne passent pas par le formulaire. Elles sont simplement retirées des places ouvertes et signalées sur la page.
+
 ## Le jour de l'événement
 
 1. Sur un téléphone, ouvrir `https://<domaine>/equipe` et se connecter.
@@ -114,7 +124,7 @@ openssl rand -base64 48
 npm test
 ```
 
-Les tests utilisent la base de `compose.dev.yml`, dans une base séparée (`masterclass_test`) recréée à chaque exécution. Ils couvrent la validation, les doublons, la clôture, les exports, l'accès de l'équipe et le quota : 260 demandes simultanées pour 200 places donnent exactement 200 inscriptions.
+Les tests utilisent la base de `compose.dev.yml`, dans une base séparée (`masterclass_test`) recréée à chaque exécution. Ils couvrent la validation, les doublons, l'ouverture programmée, les places des invités, la clôture, la numérotation des billets, les exports, l'accès de l'équipe et le quota : 260 demandes simultanées pour 200 places donnent exactement 200 inscriptions.
 
 ## Organisation
 

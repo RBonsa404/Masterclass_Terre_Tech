@@ -134,10 +134,34 @@ function compter(element, cible) {
   requestAnimationFrame(pas);
 }
 
+// Écart entre l'horloge du serveur et celle de l'appareil : le compte à rebours suit l'heure du serveur.
+let decalage = 0;
+const heureServeur = () => Date.now() + decalage;
+
+const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/** « jeudi 8 octobre à minuit », en heure d'Ouagadougou (UTC). Minuit est précisé pour lever toute ambiguïté. */
+function decrireOuverture(iso) {
+  const d = new Date(iso);
+  const jour = `${JOURS[d.getUTCDay()]} ${d.getUTCDate()}${d.getUTCDate() === 1 ? 'er' : ''} ${MOIS[d.getUTCMonth()]}`;
+  const h = d.getUTCHours();
+  const m = d.getUTCMinutes();
+  if (h === 0 && m === 0) {
+    const veille = JOURS[(d.getUTCDay() + 6) % 7];
+    return { jour: `${jour} à minuit`, precision: `À 00h00 précises, dans la nuit de ${veille} à ${JOURS[d.getUTCDay()]}.` };
+  }
+  return { jour: `${jour} à ${h}h${String(m).padStart(2, '0')}`, precision: '' };
+}
+
 function afficherEtat(etat) {
   const premier = dernierEtat === null;
+  const ouvraitBientot = dernierEtat?.aVenir === true;
   dernierEtat = etat;
-  const part = etat.capacite ? etat.inscrits / etat.capacite : 0;
+  if (etat.maintenant) decalage = new Date(etat.maintenant).getTime() - Date.now();
+
+  const invites = etat.invites ?? 0;
+  const occupees = etat.capacite ? (invites + etat.inscrits) / etat.capacite : 0;
   $$('[data-places]').forEach((e) => {
     if (premier) e.dataset.valeur = etat.capacite;
     compter(e, etat.restantes);
@@ -148,28 +172,94 @@ function afficherEtat(etat) {
     compter(e, etat.inscrits);
   });
   $$('[data-capacite]').forEach((e) => (e.textContent = etat.capacite));
+  $$('[data-ouvertes]').forEach((e) => (e.textContent = etat.restantes));
+
+  // Places des invités : annoncées dès le départ, pour que le décompte soit compris de tous.
+  $$('[data-invites-nombre]').forEach((e) => (e.textContent = invites));
+  $$('[data-invites], [data-fiche-invites], [data-legende]').forEach((e) => (e.hidden = invites === 0));
+
+  // La jauge part déjà entamée des places des invités, puis se vide au fil des inscriptions.
   const trait = $('[data-jauge-trait]');
-  if (trait) trait.style.strokeDashoffset = String(CIRCONFERENCE * part);
+  if (trait) trait.style.strokeDashoffset = String(CIRCONFERENCE * occupees);
   const progres = $('[data-progres]');
   if (progres) {
     progres.setAttribute('aria-valuemax', etat.capacite);
-    progres.setAttribute('aria-valuenow', etat.inscrits);
-    $('[data-progres-trait]').style.width = `${Math.min(100, part * 100)}%`;
+    progres.setAttribute('aria-valuenow', invites + etat.inscrits);
+    $('[data-progres-invites]').style.width = `${etat.capacite ? (invites / etat.capacite) * 100 : 0}%`;
+    $('[data-progres-trait]').style.width = `${etat.capacite ? Math.min(100, (etat.inscrits / etat.capacite) * 100) : 0}%`;
   }
+
+  const ouverture = etat.ouverture ? decrireOuverture(etat.ouverture) : null;
   const texte = $('[data-etat-texte]');
   if (texte) {
     texte.textContent = etat.complet
       ? 'Complet : toutes les places ont été attribuées.'
       : etat.cloturees
         ? 'Les inscriptions sont closes.'
-        : `${etat.inscrits} inscrit${etat.inscrits > 1 ? 's' : ''} sur ${etat.capacite} places.`;
+        : etat.aVenir && ouverture
+          ? `Ouverture des inscriptions ${ouverture.jour}.`
+          : `${etat.inscrits} inscrit${etat.inscrits > 1 ? 's' : ''} sur ${etat.ouvertes ?? etat.capacite} places ouvertes.`;
   }
-  if (!etat.ouvert) fermer(etat);
+  const fiche = $('[data-fiche-ouverture]');
+  if (fiche && ouverture) fiche.textContent = etat.aVenir ? `Ouverture ${ouverture.jour}, clôture le 16 octobre` : 'Ouvertes jusqu’au 16 octobre';
+
+  const attente = $('[data-attente]');
+  if (attente) attente.hidden = true;
+  const reussite = $('[data-reussite]');
+  if (reussite && !reussite.hidden) return; // Une inscription vient d'aboutir : son billet reste affiché.
+  const form = $('#formulaire');
+  const bientot = $('[data-bientot]');
+  const complet = $('[data-complet]');
+
+  if (etat.aVenir && !etat.complet) {
+    form.hidden = true;
+    complet.hidden = true;
+    bientot.hidden = false;
+    if (ouverture) {
+      $('[data-ouverture-jour]').textContent = ouverture.jour;
+      $('[data-ouverture-detail]').textContent = `${ouverture.precision} Tout le monde part en même temps : gardez cette page sous la main.`.trim();
+    }
+    $$('[data-cta]').forEach((b) => (b.firstChild.textContent = 'Ouverture des inscriptions '));
+    battreOuverture();
+  } else if (!etat.ouvert) {
+    bientot.hidden = true;
+    fermer(etat);
+  } else {
+    bientot.hidden = true;
+    complet.hidden = true;
+    form.hidden = false;
+    $$('[data-cta]').forEach((b) => (b.firstChild.textContent = 'Réserver ma place '));
+    // Les inscriptions viennent d'ouvrir sous les yeux du visiteur : le formulaire arrive en douceur.
+    if (ouvraitBientot) {
+      form.classList.add('arrivee');
+      form.elements.nom?.focus({ preventScroll: true });
+    }
+  }
 }
 
+/** Compte à rebours jusqu'à l'ouverture ; à zéro, l'état est relu et le formulaire apparaît de lui-même. */
+let relectureOuverture = null;
+function battreOuverture() {
+  const etat = dernierEtat;
+  if (!etat?.aVenir || !etat.ouverture) return;
+  const reste = Math.max(0, new Date(etat.ouverture).getTime() - heureServeur());
+  const s = Math.floor(reste / 1000);
+  const deux = (n) => String(n).padStart(2, '0');
+  const valeurs = { jours: Math.floor(s / 86400), heures: Math.floor((s % 86400) / 3600), minutes: Math.floor((s % 3600) / 60), secondes: s % 60 };
+  for (const [cle, valeur] of Object.entries(valeurs)) {
+    const e = $(`[data-ouverture="${cle}"]`);
+    if (e) e.textContent = deux(valeur);
+  }
+  if (reste <= 0 && !relectureOuverture) {
+    relectureOuverture = setTimeout(async () => {
+      relectureOuverture = null;
+      await lireEtat();
+    }, 600);
+  }
+}
+setInterval(battreOuverture, 1000);
+
 function fermer(etat) {
-  const zone = $('[data-reussite]');
-  if (zone && !zone.hidden) return; // Une inscription vient d'aboutir : son billet reste affiché.
   $('#formulaire').hidden = true;
   const bloc = $('[data-complet]');
   bloc.hidden = false;
@@ -190,11 +280,29 @@ async function lireEtat() {
   } catch {
     const texte = $('[data-etat-texte]');
     if (texte && !dernierEtat) texte.textContent = 'Places disponibles : indisponible pour le moment.';
+    // État illisible : le formulaire reste proposé, et le serveur décide à l'envoi.
+    if (!dernierEtat) {
+      $('[data-attente]').hidden = true;
+      $('#formulaire').hidden = false;
+    }
   }
 }
 lireEtat();
 setInterval(() => !document.hidden && lireEtat(), 20000);
 document.addEventListener('visibilitychange', () => !document.hidden && lireEtat());
+
+// ───── Partage du lien, en attendant l'ouverture ─────
+$('[data-partager]')?.addEventListener('click', async () => {
+  const libelle = $('[data-partager-texte]');
+  const donnees = { title: 'Voyage en Terre Tech', text: 'Masterclass gratuite du Club Informatique de l’IST, samedi 17 octobre. Les inscriptions ouvrent bientôt :', url: location.origin + '/' };
+  try {
+    if (navigator.share) return await navigator.share(donnees);
+    await navigator.clipboard.writeText(donnees.url);
+    libelle.textContent = 'Lien copié';
+  } catch {
+    // Partage annulé par le visiteur : rien à signaler.
+  }
+});
 
 // ───── Formulaire ─────
 (function formulaire() {
@@ -264,7 +372,7 @@ document.addEventListener('visibilitychange', () => !document.hidden && lireEtat
       if (reponse.status === 422 && corps.erreurs) {
         montrer(corps.erreurs);
         form.elements[Object.keys(corps.erreurs)[0]]?.focus();
-      } else if (corps.code === 'COMPLET' || corps.code === 'INSCRIPTIONS_CLOSES') {
+      } else if (corps.code === 'COMPLET' || corps.code === 'INSCRIPTIONS_CLOSES' || corps.code === 'PAS_ENCORE_OUVERT') {
         await lireEtat();
       } else {
         alerte.textContent =

@@ -115,6 +115,10 @@
             </div>
           </div>
           <p class="tableau-pied" data-etat-texte aria-live="polite">Chargement des places disponibles…</p>
+          <p class="invites" data-invites hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span><b data-invites-nombre></b> places sont déjà réservées à nos invités</span>
+          </p>
         </aside>
       </div>
       <a class="defiler" href="#pourquoi" aria-label="Faire défiler vers la suite">
@@ -236,7 +240,8 @@
           <div class="revele"><dt>Lieu</dt><dd>Amphithéâtre de l’UBS, campus de Tampouy, Ouagadougou</dd></div>
           <div class="revele"><dt>Tarif</dt><dd>Gratuit, sur inscription</dd></div>
           <div class="revele"><dt>Pour qui</dt><dd>Les étudiants de toutes les filières, sans prérequis</dd></div>
-          <div class="revele"><dt>Places</dt><dd><span data-capacite>200</span> places, inscriptions jusqu’au 16 octobre</dd></div>
+          <div class="revele"><dt>Places</dt><dd><span data-capacite>200</span> places<span data-fiche-invites hidden>, dont <span data-invites-nombre></span> réservées à nos invités</span></dd></div>
+          <div class="revele"><dt>Inscriptions</dt><dd><span data-fiche-ouverture>Jusqu’au 16 octobre</span></dd></div>
         </dl>
       </div>
     </section>
@@ -255,8 +260,12 @@
               <span><b data-places>···</b> <span data-places-libelle>places restantes</span></span>
             </div>
             <div class="barre-progres" role="progressbar" aria-label="Places attribuées" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0" data-progres>
-              <span data-progres-trait></span>
+              <span class="invites-trait" data-progres-invites></span><span data-progres-trait></span>
             </div>
+            <p class="legende" data-legende hidden>
+              <span><i class="puce invites-puce"></i><span data-invites-nombre></span> places réservées à nos invités</span>
+              <span><i class="puce inscrits-puce"></i>Places déjà prises</span>
+            </p>
           </div>
 
           <ul class="garanties revele">
@@ -267,7 +276,8 @@
         </div>
 
         <div class="panneau revele" data-zone-formulaire>
-          <form id="formulaire" novalidate>
+          <p class="mention" data-attente>Chargement des places disponibles…</p>
+          <form id="formulaire" novalidate hidden>
             <div class="rang">
               <label class="champ">Nom <span aria-hidden="true">*</span>
                 <input name="nom" type="text" autocomplete="family-name" maxlength="60" required>
@@ -339,6 +349,30 @@
             </button>
             <p class="mention">* Champs obligatoires.</p>
           </form>
+
+          <div class="bientot" data-bientot hidden>
+            <p class="etiquette"><span class="pastille"></span> Embarquement bientôt</p>
+            <h3>Les inscriptions ouvrent <span data-ouverture-jour>bientôt</span></h3>
+            <p data-ouverture-detail>Tout le monde part en même temps : gardez cette page sous la main.</p>
+            <div class="rebours" role="timer" aria-live="off" aria-label="Temps restant avant l’ouverture des inscriptions">
+              <div><b data-ouverture="jours">--</b><span>jours</span></div>
+              <div><b data-ouverture="heures">--</b><span>heures</span></div>
+              <div><b data-ouverture="minutes">--</b><span>min</span></div>
+              <div><b data-ouverture="secondes">--</b><span>s</span></div>
+            </div>
+            <p class="bientot-places"><b data-ouvertes></b> places vous attendent. L’inscription prend une minute : nom, prénom, adresse électronique, téléphone, établissement et filière.</p>
+            <div class="bientot-actions">
+              <a class="bouton bouton-ambre" href="/rappel-ouverture.ics" download>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Me le rappeler
+              </a>
+              <button class="bouton bouton-contour" type="button" data-partager>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+                <span data-partager-texte>Prévenir un ami</span>
+              </button>
+            </div>
+            <p class="mention">Le formulaire apparaîtra ici de lui-même à l’ouverture, sans recharger la page.</p>
+          </div>
 
           <div class="complet" data-complet hidden>
             <div class="tampon">Complet</div>

@@ -95,6 +95,33 @@ export function creerApplication(base, config) {
     res.set('Cache-Control', 'no-store').json(await etat(base, config));
   });
 
+  // Rappel d'agenda : l'ouverture des inscriptions, avec une alerte un quart d'heure avant.
+  app.get('/rappel-ouverture.ics', (req, res) => {
+    const date = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const fin = new Date(config.ouverture.getTime() + 30 * 60 * 1000);
+    const lignes = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Club Informatique de l IST//Voyage en Terre Tech//FR',
+      'BEGIN:VEVENT',
+      `UID:ouverture-inscriptions@${req.get('host')}`,
+      `DTSTAMP:${date(new Date())}`,
+      `DTSTART:${date(config.ouverture)}`,
+      `DTEND:${date(fin)}`,
+      'SUMMARY:Ouverture des inscriptions : Voyage en Terre Tech',
+      `DESCRIPTION:Les inscriptions à la masterclass ouvrent maintenant. Réservez votre place : ${origine(req)}/`,
+      `URL:${origine(req)}/`,
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Les inscriptions à la masterclass ouvrent dans 15 minutes',
+      'TRIGGER:-PT15M',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ];
+    res.type('text/calendar; charset=utf-8').set('Content-Disposition', 'attachment; filename="ouverture-inscriptions-terre-tech.ics"').send(lignes.join('\r\n') + '\r\n');
+  });
+
   app.post('/api/inscriptions', limiteur(8, 10 * 60 * 1000), async (req, res) => {
     // Champ piège : invisible pour un visiteur, rempli par les robots. La demande est ignorée sans le signaler.
     if (typeof req.body?.site === 'string' && req.body.site.trim() !== '') return res.status(201).json({ code: null });

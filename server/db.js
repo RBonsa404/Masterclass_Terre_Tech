@@ -23,4 +23,6 @@ export async function preparerSchema(base) {
       inscrit_le    TIMESTAMPTZ NOT NULL DEFAULT now(),
       present_le    TIMESTAMPTZ
     )`);
+  // Table vide : la numérotation des billets repart de 001 (les essais retirés ne laissent pas de trou).
+  await base.query(`SELECT setval(pg_get_serial_sequence('inscription', 'id'), 1, false) WHERE NOT EXISTS (SELECT 1 FROM inscription)`);
 }

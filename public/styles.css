@@ -144,6 +144,9 @@ h1 { font-size: clamp(2.9rem, 8.2vw, 6rem); font-weight: 800; line-height: 0.98;
 .jauge-texte b { font: 800 clamp(2.2rem, 5vw, 3rem)/1 var(--titres); color: var(--texte); font-variant-numeric: tabular-nums; }
 .jauge-texte span { font-size: 0.78rem; color: var(--texte-3); max-width: 7rem; line-height: 1.3; margin-top: 0.3rem; }
 .tableau-pied { text-align: center; font-size: 0.86rem; color: var(--texte-3); min-height: 1.5em; }
+.invites { display: flex; align-items: center; justify-content: center; gap: 0.55rem; margin-top: 0.85rem; padding: 0.6rem 0.9rem; border-radius: 12px; font-size: 0.84rem; color: var(--texte-2); background: rgba(251, 191, 36, 0.09); border: 1px dashed rgba(251, 191, 36, 0.45); }
+.invites svg { color: var(--ambre); fill: rgba(251, 191, 36, 0.25); width: 1.05em; height: 1.05em; }
+.invites b { color: var(--ambre); }
 .defiler { position: absolute; left: 50%; bottom: 1.2rem; translate: -50% 0; color: var(--texte-3); animation: flotte 2.4s ease-in-out infinite; }
 @keyframes flotte { 50% { transform: translateY(7px); } }
 
@@ -203,7 +206,25 @@ h2 { font-size: clamp(1.9rem, 4.4vw, 3.1rem); font-weight: 800; max-width: 24ch;
 .compteur-ligne { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.9rem; color: var(--texte-3); }
 .compteur-ligne b { color: var(--texte); font: 700 1.25rem var(--titres); font-variant-numeric: tabular-nums; }
 .barre-progres { height: 10px; margin-top: 0.8rem; border-radius: 999px; background: rgba(148, 163, 184, 0.14); overflow: hidden; }
-.barre-progres span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--ambre)); transition: width 1.4s var(--douce); }
+.barre-progres { display: flex; }
+.barre-progres span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), #7dd3fc); transition: width 1.4s var(--douce); }
+/* Places des invités : hachures ambre, pour les distinguer des places prises par les inscrits. */
+.barre-progres .invites-trait { background: repeating-linear-gradient(135deg, var(--ambre) 0 5px, rgba(251, 191, 36, 0.45) 5px 10px); }
+.legende { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; margin-top: 0.75rem; font-size: 0.8rem; color: var(--texte-3); }
+.legende > span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.puce { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.invites-puce { background: repeating-linear-gradient(135deg, var(--ambre) 0 3px, rgba(251, 191, 36, 0.45) 3px 6px); }
+.inscrits-puce { background: var(--cyan); }
+.bientot { display: grid; gap: 1.1rem; justify-items: center; text-align: center; padding: 0.5rem 0; }
+.bientot .etiquette { margin: 0; }
+.bientot h3 { font-size: clamp(1.35rem, 3.4vw, 1.75rem); line-height: 1.2; }
+.bientot h3 span { color: var(--ambre); }
+.bientot .rebours { width: 100%; max-width: 420px; }
+.bientot-places b { color: var(--texte); font: 700 1.05em var(--titres); }
+.bientot-places { font-size: 0.93rem; max-width: 30rem; }
+.bientot-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; }
+.arrivee { animation: arrivee 0.9s var(--douce); }
+@keyframes arrivee { from { opacity: 0; transform: translateY(18px) scale(0.98); } }
 .garanties { margin-top: 1.6rem; display: grid; gap: 0.7rem; font-size: 0.93rem; }
 .garanties li { display: flex; gap: 0.7rem; align-items: flex-start; }
 .garanties svg { color: var(--succes); margin-top: 0.2rem; }
