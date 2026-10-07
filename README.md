@@ -75,7 +75,7 @@ Le fichier [`.env.example`](.env.example) les liste toutes. Aucun secret n'est �
 | `SESSION_SECRET` | requise | | secret de signature des sessions, 32 caractères aléatoires au moins |
 | `CAPACITE` | facultative | `200` | nombre de places |
 | `PLACES_INVITES` | facultative | `35` | places retenues pour les invités, comptées dans la capacité |
-| `OUVERTURE_INSCRIPTIONS` | facultative | `2026-10-08T00:00:00Z` | date et heure d'ouverture (heure d'Ouagadougou = UTC) |
+| `OUVERTURE_INSCRIPTIONS` | facultative | `2026-10-07T00:00:00Z` | date et heure d'ouverture (heure d'Ouagadougou = UTC) |
 | `CLOTURE_INSCRIPTIONS` | facultative | `2026-10-16T23:59:59Z` | date et heure de clôture (heure d'Ouagadougou = UTC) |
 | `PUBLIC_URL` | facultative | adresse de la requête | adresse publique du site, sans barre finale ; à renseigner avec un domaine personnalisé |
 

@@ -18,7 +18,7 @@ export function lireConfiguration(env = process.env) {
     // Places retenues pour les invités : elles comptent dans la capacité, mais ne sont pas ouvertes à l'inscription.
     placesInvites: Math.max(0, env.PLACES_INVITES === undefined ? 35 : Number.parseInt(env.PLACES_INVITES, 10) || 0),
     // Ouverture des inscriptions : avant cette date, la page annonce l'ouverture et le formulaire reste fermé.
-    ouverture: new Date(env.OUVERTURE_INSCRIPTIONS ?? '2026-10-08T00:00:00Z'),
+    ouverture: new Date(env.OUVERTURE_INSCRIPTIONS ?? '2026-10-07T00:00:00Z'),
     // Clôture des inscriptions (note de cadrage : 16 octobre 2026). Heure d'Ouagadougou = UTC.
     cloture: new Date(env.CLOTURE_INSCRIPTIONS ?? '2026-10-16T23:59:59Z'),
     motDePasseAdmin: env.ADMIN_PASSWORD ?? '',
